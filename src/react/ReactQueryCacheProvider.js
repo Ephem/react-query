@@ -20,7 +20,6 @@ export function ReactQueryCacheProvider({
     [queryCache]
   )
 
-  // TODO: Add tests for initialQueries including initQueries
   const initializeQueries = React.useMemo(() => {
     if (initialQueries) {
       return hydrate(resolvedQueryCache, initialQueries)
