@@ -132,7 +132,7 @@ export function makeQueryCache({ frozen = false, defaultConfig } = {}) {
     })
   }
 
-  queryCache.buildQuery = (userQueryKey, config = {}) => {
+  queryCache.createQuery = (userQueryKey, config) => {
     config = {
       ...configRef.current.shared,
       ...configRef.current.queries,
@@ -171,31 +171,39 @@ export function makeQueryCache({ frozen = false, defaultConfig } = {}) {
         }
       }
 
-      // If the query started with data, schedule
-      // a stale timeout
-      if (!isServer && query.state.data) {
-        query.scheduleStaleTimeout()
-
-        // Simulate a query healing process
-        query.heal()
-        // Schedule for garbage collection in case
-        // nothing subscribes to this query
-        query.scheduleGarbageCollection()
-      }
-
       if (!frozen) {
         queryCache.queries[queryHash] = query
+      }
 
-        if (isServer) {
-          notifyGlobalListeners()
-        } else {
-          // Here, we setTimeout so as to not trigger
-          // any setState's in parent components in the
-          // middle of the render phase.
-          setTimeout(() => {
+      query.initializeQuery = () => {
+        if (!frozen) {
+          if (isServer) {
+            // On the server, queries should never be created
+            // in the render phase, so we call notify synchronously
             notifyGlobalListeners()
-          })
+          } else {
+            if (query.state.data) {
+              // If the query started with data, schedule
+              // a stale timeout
+              query.scheduleStaleTimeout()
+
+              // Simulate a query healing process
+              query.heal()
+
+              // Schedule for garbage collection in case
+              // nothing subscribes to this query
+              query.scheduleGarbageCollection()
+            }
+            // Here, we setTimeout so as to not trigger
+            // any setState's in parent components in the
+            // middle of the render phase.
+            setTimeout(() => {
+              notifyGlobalListeners()
+            })
+          }
         }
+
+        delete query.initializeQuery
       }
     }
 
@@ -205,6 +213,16 @@ export function makeQueryCache({ frozen = false, defaultConfig } = {}) {
         onError: query.config.onError,
         onSettled: query.config.onSettled,
       },
+    }
+
+    return query
+  }
+
+  queryCache.buildQuery = (userQueryKey, config = {}) => {
+    const query = queryCache.createQuery(userQueryKey, config)
+
+    if (query.initializeQuery) {
+      query.initializeQuery()
     }
 
     return query

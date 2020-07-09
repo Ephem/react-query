@@ -9,3 +9,4 @@ export {
   setConsole,
   deepIncludes,
 } from './utils'
+export { dehydrateQuery, dehydrate, hydrate } from './hydration'

@@ -1,15 +1,37 @@
 import React from 'react'
-import { queryCache as defaultQueryCache, queryCaches, makeQueryCache } from '../core'
+import {
+  queryCache as defaultQueryCache,
+  queryCaches,
+  makeQueryCache,
+  hydrate,
+} from '../core'
 
 export const queryCacheContext = React.createContext(defaultQueryCache)
 
 export const useQueryCache = () => React.useContext(queryCacheContext)
 
-export function ReactQueryCacheProvider({ queryCache, children }) {
+export function ReactQueryCacheProvider({
+  queryCache,
+  initialQueries,
+  children,
+}) {
   const resolvedQueryCache = React.useMemo(
     () => queryCache || makeQueryCache(),
     [queryCache]
   )
+
+  // TODO: Add tests for initialQueries including initQueries
+  const initializeQueries = React.useMemo(() => {
+    if (initialQueries) {
+      return hydrate(resolvedQueryCache, initialQueries)
+    }
+  }, [resolvedQueryCache, initialQueries])
+
+  React.useEffect(() => {
+    if (initializeQueries) {
+      initializeQueries()
+    }
+  }, [initializeQueries])
 
   React.useEffect(() => {
     queryCaches.push(resolvedQueryCache)
