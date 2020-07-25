@@ -1,5 +1,6 @@
-import { sleep } from './utils'
-import { makeQueryCache, dehydrate, hydrate } from '../'
+import { sleep } from '../../core/tests/utils'
+import { makeQueryCache } from '../../core'
+import { dehydrate, hydrate } from '../hydration'
 
 describe('dehydration and rehydration', () => {
   test('should work with serializeable values', async () => {

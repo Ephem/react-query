@@ -14,6 +14,7 @@ const globals = {
 }
 
 const inputSrc = 'src/react/index.js'
+const hydrationSrc = 'src/hydration/index.js'
 
 export default [
   {
@@ -66,7 +67,66 @@ export default [
       externalDeps(),
       terser(),
       size(),
-      visualizer(),
+      visualizer({
+        filename: 'stats-react.json',
+        json: true,
+      }),
+    ],
+  },
+  {
+    input: hydrationSrc,
+    output: {
+      file: 'dist/hydration/react-query-hydration.mjs',
+      format: 'es',
+      sourcemap: true,
+    },
+    external,
+    plugins: [resolve(), babel(), commonJS(), externalDeps()],
+  },
+  {
+    input: hydrationSrc,
+    output: {
+      file: 'dist/hydration/react-query-hydration.min.mjs',
+      format: 'es',
+      sourcemap: true,
+    },
+    external,
+    plugins: [resolve(), babel(), commonJS(), externalDeps(), terser()],
+  },
+  {
+    input: hydrationSrc,
+    output: {
+      name: 'ReactQueryHydration',
+      file: 'dist/hydration/react-query-hydration.development.js',
+      format: 'umd',
+      sourcemap: true,
+      globals,
+    },
+    external,
+    plugins: [resolve(), babel(), commonJS(), externalDeps()],
+  },
+  {
+    input: hydrationSrc,
+    output: {
+      name: 'ReactQueryHydration',
+      file: 'dist/hydration/react-query-hydration.production.min.js',
+      format: 'umd',
+      sourcemap: true,
+      globals,
+    },
+    external,
+    plugins: [
+      replace({ 'process.env.NODE_ENV': `"production"`, delimiters: ['', ''] }),
+      resolve(),
+      babel(),
+      commonJS(),
+      externalDeps(),
+      terser(),
+      size(),
+      visualizer({
+        filename: 'stats-hydration.json',
+        json: true,
+      }),
     ],
   },
 ]

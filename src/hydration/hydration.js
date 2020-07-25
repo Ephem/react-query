@@ -1,5 +1,5 @@
-import { statusSuccess, isServer } from './utils'
-import { defaultConfigRef } from './config'
+import { DEFAULT_STALE_TIME, DEFAULT_CACHE_TIME } from '../core/config'
+import { statusSuccess, isServer } from '../core/utils'
 
 export function dehydrateQuery(query) {
   const dehydratedQuery = {}
@@ -10,10 +10,10 @@ export function dehydrateQuery(query) {
   // in the html-payload, but not consume it on the initial render.
   // We still schedule stale and garbage collection right away, which means
   // we need to specifically include staleTime and cacheTime in dehydration.
-  if (query.config.staleTime !== defaultConfigRef.current.queries.staleTime) {
+  if (query.config.staleTime !== DEFAULT_STALE_TIME) {
     dehydratedQuery.staleTime = query.config.staleTime
   }
-  if (query.config.cacheTime !== defaultConfigRef.current.queries.cacheTime) {
+  if (query.config.cacheTime !== DEFAULT_CACHE_TIME) {
     dehydratedQuery.cacheTime = query.config.cacheTime
   }
   if (query.state.data !== undefined) {
