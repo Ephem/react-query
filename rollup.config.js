@@ -8,9 +8,14 @@ import visualizer from 'rollup-plugin-visualizer'
 import replace from '@rollup/plugin-replace'
 
 const external = ['react']
+const hydrationExternal = [...external, 'react-query']
 
 const globals = {
   react: 'React',
+}
+const hydrationGlobals = {
+  ...globals,
+  'react-query': 'ReactQuery',
 }
 
 const inputSrc = 'src/react/index.js'
@@ -80,7 +85,7 @@ export default [
       format: 'es',
       sourcemap: true,
     },
-    external,
+    external: hydrationExternal,
     plugins: [resolve(), babel(), commonJS(), externalDeps()],
   },
   {
@@ -90,7 +95,7 @@ export default [
       format: 'es',
       sourcemap: true,
     },
-    external,
+    external: hydrationExternal,
     plugins: [resolve(), babel(), commonJS(), externalDeps(), terser()],
   },
   {
@@ -100,9 +105,9 @@ export default [
       file: 'dist/hydration/react-query-hydration.development.js',
       format: 'umd',
       sourcemap: true,
-      globals,
+      globals: hydrationGlobals,
     },
-    external,
+    external: hydrationExternal,
     plugins: [resolve(), babel(), commonJS(), externalDeps()],
   },
   {
@@ -112,9 +117,9 @@ export default [
       file: 'dist/hydration/react-query-hydration.production.min.js',
       format: 'umd',
       sourcemap: true,
-      globals,
+      globals: hydrationGlobals,
     },
-    external,
+    external: hydrationExternal,
     plugins: [
       replace({ 'process.env.NODE_ENV': `"production"`, delimiters: ['', ''] }),
       resolve(),
