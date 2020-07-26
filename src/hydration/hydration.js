@@ -1,8 +1,11 @@
 import { DEFAULT_STALE_TIME, DEFAULT_CACHE_TIME } from '../core/config'
-import { statusSuccess, isServer } from '../core/utils'
+import { isServer } from '../core/utils'
+import { statusSuccess } from 'react-query'
 
 export function dehydrateQuery(query) {
-  const dehydratedQuery = {}
+  const dehydratedQuery = {
+    config: {},
+  }
 
   // Most config is not dehydrated but instead meant to configure again when
   // consuming the de/rehydrated data, typically with useQuery on the client.
@@ -11,14 +14,15 @@ export function dehydrateQuery(query) {
   // We still schedule stale and garbage collection right away, which means
   // we need to specifically include staleTime and cacheTime in dehydration.
   if (query.config.staleTime !== DEFAULT_STALE_TIME) {
-    dehydratedQuery.staleTime = query.config.staleTime
+    dehydratedQuery.config.staleTime = query.config.staleTime
   }
   if (query.config.cacheTime !== DEFAULT_CACHE_TIME) {
-    dehydratedQuery.cacheTime = query.config.cacheTime
+    dehydratedQuery.config.cacheTime = query.config.cacheTime
   }
   if (query.state.data !== undefined) {
-    dehydratedQuery.initialData = query.state.data
+    dehydratedQuery.config.initialData = query.state.data
   }
+  dehydratedQuery.updatedAt = query.state.updatedAt
 
   return dehydratedQuery
 }
@@ -43,9 +47,10 @@ export function hydrate(
 
   for (const [queryHash, query] of Object.entries(dehydratedQueries)) {
     const queryKey = queryKeyParserFn(queryHash)
-    const queryConfig = query || {}
+    const queryConfig = query.config || {}
 
     queryCache.createQuery(queryKey, queryConfig)
+    queryCache.queries[queryHash].state.updatedAt = query.updatedAt
 
     // We avoid keeping a reference to the query itself here since
     // that would mean the query could not be garbage collected as

@@ -82,11 +82,17 @@ export function makeQuery({
       return
     }
 
+    let timeout = query.config.staleTime
+    if (query.state.updatedAt) {
+      const timeElapsed = Date.now() - query.state.updatedAt
+      const timeUntilStale = query.config.staleTime - timeElapsed
+      timeout = Math.max(timeUntilStale, 0)
+    }
     query.staleTimeout = setTimeout(() => {
       if (queryCache.getQuery(query.queryKey)) {
         query.invalidate()
       }
-    }, query.config.staleTime)
+    }, timeout)
   }
 
   query.invalidate = () => {
